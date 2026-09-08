@@ -423,10 +423,18 @@ export default async function AnikotoRoutes(fastify: FastifyInstance) {
           error: `Missing required path paramater: 'episodeId'`,
         });
       }
+      const cacheKey = `anikoto-servers-${episodeId}`;
+      const cachedData = await redisGetCache(cacheKey);
+      if (cachedData) {
+        return reply.status(200).send(cachedData);
+      }
       try {
         const result = await anikoto.fetchServers(episodeId);
         if (result.error) {
           return reply.status(result.status as number).send({ error: result.error });
+        }
+        if (result.data !== null) {
+          await redisSetCache(cacheKey, result, 4);
         }
         return reply.status(200).send(result);
       } catch (error) {
@@ -441,7 +449,7 @@ export default async function AnikotoRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest<{ Querystring: FastifyQuery; Params: FastifyParams }>, reply: FastifyReply) => {
       const episodeId = request.params.episodeId;
       const version = (request.query.version as 'sub' | 'dub' | 'raw') || 'sub';
-      const server = (request.query.server as 'vidstream-2' | 'vidcloud-1' | 'vidplay-1' | 'hd-1') || 'vidstream-2';
+      const server = request.query.server as 'vidstream-2' | 'vidcloud-1' | 'vidplay-1' | 'hd-1' | 'hd-2';
       if (!['sub', 'dub', 'raw'].includes(version)) {
         return reply.status(400).send({
           error: `Invalid version picked: '${version}'. Expected one of 'sub','dub' or 'raw'. `,
@@ -452,6 +460,11 @@ export default async function AnikotoRoutes(fastify: FastifyInstance) {
           error: `Missing required path paramater: 'episodeId'`,
         });
       }
+      const cacheKey = `anikoto-sources-${episodeId}-${version}-${server}`;
+      const cachedData = await redisGetCache(cacheKey);
+      if (cachedData) {
+        return reply.status(200).send(cachedData);
+      }
       try {
         const result = await anikoto.fetchSources(episodeId, version, server);
         if (!result || typeof result !== 'object') {
@@ -461,6 +474,9 @@ export default async function AnikotoRoutes(fastify: FastifyInstance) {
         }
         if (result.error) {
           return reply.status(result.status as number).send({ error: result.error });
+        }
+        if (result.data !== null && Array.isArray(result.data.sources) && result.data.sources.length > 0) {
+          await redisSetCache(cacheKey, result, 24);
         }
         return reply.status(200).send(result);
       } catch (error) {

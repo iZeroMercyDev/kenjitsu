@@ -184,7 +184,7 @@ export default async function AniDBRoutes(fastify: FastifyInstance) {
           return reply.status(result.status as number).send({ error: result.error });
         }
         if (result && result.data && Array.isArray(result.data.sources) && result.data.sources.length > 0) {
-          await redisSetCache(cacheKey, result, 6);
+          await redisSetCache(cacheKey, result, 1);
         }
         return reply.status(200).send(result);
       } catch (error) {
