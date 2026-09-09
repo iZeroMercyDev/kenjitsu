@@ -404,7 +404,7 @@ export default async function AnikotoRoutes(fastify: FastifyInstance) {
           result.providerEpisodes.length > 0 &&
           result.data.status.toLowerCase() === 'finished airing'
         ) {
-          await redisSetCache(cacheKey, result, 24);
+          await redisSetCache(cacheKey, result, 6);
         }
         return reply.status(200).send(result);
       } catch (error) {
