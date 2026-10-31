@@ -179,9 +179,9 @@ export class TheMovieDatabase extends BaseClass {
       return { error: 'Missing required params: tmdbId!', data: [], status: 400 };
     }
 
-    const cacheKey = `tmdb-episodes-${tmdbId}-${season}`;
-    const cached = await redisGetCache<IResponse<IMetaMovieEpisodes[] | []>>(cacheKey);
-    if (cached) return cached;
+    // const cacheKey = `tmdb-episodes-${tmdbId}-${season}`;
+    // const cached = await redisGetCache<IResponse<IMetaMovieEpisodes[] | []>>(cacheKey);
+    // if (cached) return cached;
 
     try {
       const queryString = new URLSearchParams({
@@ -213,9 +213,9 @@ export class TheMovieDatabase extends BaseClass {
 
       const finalResult = { data: episodes };
 
-      if (Array.isArray(episodes) && episodes.length > 0) {
-        await redisSetCache<IResponse<IMetaMovieEpisodes[] | []>>(cacheKey, finalResult, 1);
-      }
+      // if (Array.isArray(episodes) && episodes.length > 0) {
+      //   await redisSetCache<IResponse<IMetaMovieEpisodes[] | []>>(cacheKey, finalResult, 1);
+      // }
 
       return finalResult;
     } catch (error) {
